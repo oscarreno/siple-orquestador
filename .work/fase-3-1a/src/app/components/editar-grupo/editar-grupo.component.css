@@ -1,0 +1,240 @@
+table {
+  margin: 10px 0px;
+  /* background-color: #aabcd31f; */
+  padding: 10px;
+}
+
+a {
+  cursor: pointer;
+}
+
+.fondo {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: space-between;
+  align-content: center;
+  height: 100%;
+  min-height: 0;
+}
+
+.editor-shell {
+  gap: 1rem;
+}
+
+.editor-recovery {
+  flex: 0 0 auto;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.editor-recovery p {
+  margin: 0.75rem 0;
+}
+
+.editor-recovery button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: start;
+}
+
+.editor-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.editor-tabs :where(.p-tabpanels) {
+  width: 100%;
+}
+
+.editor-subpanel-shell {
+  display: block;
+  width: 100%;
+  /* min(100%, 1180px); */
+  margin-inline: auto;
+}
+
+.editor-subpanel-shell > * {
+  display: block;
+  width: 100%;
+}
+
+.editor-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 4rem;
+  margin-top: auto;
+  padding: 0.85rem 0 0.25rem;
+  /* background: linear-gradient(180deg, rgba(245, 250, 255, 0) 0%, rgba(245, 250, 255, 0.96) 35%, rgba(245, 250, 255, 0.99) 100%); */
+}
+
+.editor-footer__status {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  color: var(--color-brand-700, var(--primary-color, #00727d));
+  font-weight: 600;
+}
+
+.editor-footer__status .pi-spinner {
+  font-size: 1.5rem;
+  color: var(--color-brand-600, var(--primary-color, #009dac));
+}
+
+:host-context(html.layout-dark) .editor-footer__status,
+:host-context(.layout-wrapper.layout-dark) .editor-footer__status {
+  color: var(--color-brand-300, var(--primary-color, #7dd6df));
+}
+
+:host-context(html.layout-dark) .editor-footer__status .pi-spinner,
+:host-context(.layout-wrapper.layout-dark) .editor-footer__status .pi-spinner {
+  color: var(--color-brand-400, var(--primary-color, #4cc6d3));
+}
+
+.editor-footer__save {
+  box-shadow: 0 12px 24px rgba(0, 114, 125, 0.22);
+}
+
+.contenedor1 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 15px;
+  row-gap: 10px;
+  margin: 10px 0px;
+  /* background-color: #aabcd31f; */
+  padding: 10px;
+}
+
+.contenedor {
+  display: grid;
+  column-gap: 15px;
+  row-gap: 10px;
+  margin: 10px 0px;
+  /* background-color: #aabcd31f; */
+  padding: 10px;
+}
+
+.contenedorCupos {
+  grid-template-columns: 1fr 1fr 8fr;
+}
+
+.contenedorMensajes {
+  grid-template-columns: 69px 16fr 1fr;
+}
+
+.celda {
+  align-self: center;
+  /* overflow:hidden; */
+}
+
+.boton {
+  cursor: pointer;
+}
+
+.celda1 {
+  display: flex;
+  /* background-color: #5e81ac87; */
+  border: 1px solid lightgray;
+  padding: 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.error {
+  font-size: large;
+  border: 1px solid #cf614f;
+  display: flex;
+  font-weight: 700;
+  color: #cf614f;
+  justify-content: center;
+  text-shadow: 0 0 black;
+  background-color: beige;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.cupoError {
+  color: #cf614f;
+  font-weight: bold;
+}
+
+.badge {
+  font-size: small;
+  border-style: solid;
+  border-width: 1px;
+  text-align: center;
+  margin-right: 5px;
+  border-radius: 5px;
+  padding: 1px 4px;
+  background-color: #91749e9c;
+  color: whitesmoke;
+  border-color: whitesmoke;
+}
+
+.encabezadoTabla {
+  color: white !important;
+  background: #304258 !important;
+}
+
+.scrolls {
+  background-color: var(--primary-color);
+  opacity: 1;
+  transition: background-color 0.2s;
+}
+
+.txtmaterias {
+  font-weight: bold;
+}
+
+.celdaSP {
+  background-color: #348df354 !important;
+}
+.celdaAC {
+  background-color: #f3e63447 !important;
+}
+
+.circulo {
+  border-style: solid;
+  border-width: 1px;
+  border-color: whitesmoke;
+  font-weight: 900;
+  height: 25px;
+  width: 25px;
+  text-align: center;
+  border-radius: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  cursor: pointer;
+  display: inline-block;
+}
+.palomita {
+  padding-top: 5px;
+  color: whitesmoke;
+  background-color: #229c4b93;
+}
+
+.tache {
+  padding: 2px;
+  color: whitesmoke;
+  background-color: #9c222293;
+}
+
+.scrollpanel-bar {
+  border: 5px solid green !important;
+  background-color: #304258 !important;
+}
+
+.ctrlPresionado {
+  background-color: #304258 !important;
+}

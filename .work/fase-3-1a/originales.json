@@ -1,0 +1,18 @@
+﻿[
+    {
+        "sha256":  "3AF9DE74FD526D5CADD5F5225BDB2DE71DA5CBE2DBAECAAC1E4E5211FA7221A5",
+        "ruta":  "src/app/services/grupos-data.service.ts"
+    },
+    {
+        "sha256":  "4C3E249F2E3600F834A7280E05F444BB3C466E3F71E623D00438B2738BCECB4F",
+        "ruta":  "src/app/components/editar-grupo/editar-grupo.component.ts"
+    },
+    {
+        "sha256":  "7BDE2D671EAA059623E81797B1B7EBC8FE27BFFB16FA36187832737E0381F871",
+        "ruta":  "src/app/components/editar-grupo/editar-grupo.component.html"
+    },
+    {
+        "sha256":  "C697DF41E61EBBF3E6D8A3E6104E9C025B1BF1826F9564F1381AE78A6FB7AC6A",
+        "ruta":  "src/app/components/editar-grupo/editar-grupo.component.css"
+    }
+]

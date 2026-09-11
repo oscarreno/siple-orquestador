@@ -1,0 +1,39 @@
+{
+  "contrato": "grupos-v1",
+  "fecha": "2026-09-08",
+  "alcance": "Fundaciones con reservas; no habilita escrituras",
+  "archivos": [
+    {
+      "ruta": "grupos-v1.md",
+      "sha256": "88a990064526e661733df5e0a72c25b331ab79a0fb195bdd8fac54cfde56138d"
+    },
+    {
+      "ruta": "grupos-v1.graphql",
+      "sha256": "06a6f8db6fd30d64175de316a8c34bb819cdc588b0e5cb3af29b853a48db2157"
+    },
+    {
+      "ruta": "matriz-reglas-permisos-v1.md",
+      "sha256": "2910e2e575829eb47fa4bcc6df2fb3cdda43e09acfdcc40bb385ae55de1c78b0"
+    },
+    {
+      "ruta": "resolucion-fronteras-v1.md",
+      "sha256": "b9eb7ce30141af486923bcb0912991866657012511fdf209d173c6198843d177"
+    },
+    {
+      "ruta": "revision-aprobacion-v1.md",
+      "sha256": "4fce5d05dd896f64347de8deb6450c97f63b97b432e98778e9a7df6182ef03ac"
+    },
+    {
+      "ruta": "lectura-v1.graphql",
+      "sha256": "1b63bc605c28d35ce50e70c2e41cf2a558907e155a9913e67fee2cf14e46188e"
+    },
+    {
+      "ruta": "front/contrato-v1-inputs.ts",
+      "sha256": "2357c350221fdd9194e0623b015dd2d42e743826e823524b2af1aff761e3aa91"
+    },
+    {
+      "ruta": "front/contrato-v1-consumo.ts",
+      "sha256": "c01329a0f6d6fc33573d93b6a069552eec447777bb4e9fa7ebd73827da70cc17"
+    }
+  ]
+}

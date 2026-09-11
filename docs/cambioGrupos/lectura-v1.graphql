@@ -1,0 +1,11 @@
+query LeerGrupoParaCambios($objetivo: GrupoRefInput!) {
+  grupoParaCambios(objetivo: $objetivo) {
+    objetivo { origen periodo clave }
+    grupo { llaveUnica cupoGeneral }
+    revisionGrupoActual
+    horariosIdentificados {
+      asignacionId plantilla numDiaSemana claveEspacio horaInicio horaFin
+    }
+    capacidades { dominio operacion disponible motivo }
+  }
+}

@@ -1,0 +1,169 @@
+# Contrato v1 revisado, 2026-09-08. Aprobado para fundaciones; no cargar en producción.
+# Se integra con los tipos Grupo, Query y Mutation existentes.
+enum OrigenDatosGrupo { ORACLE MSSQL }
+enum OrigenOperacionGrupo {
+  EDICION_COMPLETA
+  CAMBIO_RAPIDO
+  PLANTILLA_HORARIOS
+  EDICION_MASIVA
+}
+input GrupoRefInput {
+  origen: OrigenDatosGrupo!
+  periodo: String!
+  clave: String!
+}
+type GrupoRef {
+  origen: OrigenDatosGrupo!
+  periodo: String!
+  clave: String!
+}
+input GrupoVersionadoInput {
+  objetivo: GrupoRefInput!
+  revisionGrupoEsperada: String!
+}
+type GrupoParaCambios {
+  objetivo: GrupoRef!
+  grupo: Grupo!
+  revisionGrupoActual: String!
+  horariosIdentificados: [HorarioIdentificadoGrupo!]
+  capacidades: [CapacidadCambioGrupo!]!
+}
+enum DominioCambioGrupo {
+  GENERALES CUPOS MENSAJES MODIFICADORES HORARIOS PLANES_COMPARTIDOS MATERIAS
+}
+type CapacidadCambioGrupo {
+  dominio: DominioCambioGrupo!
+  operacion: String!
+  disponible: Boolean!
+  motivo: String
+}
+type HorarioIdentificadoGrupo {
+  asignacionId: ID!
+  plantilla: String
+  numDiaSemana: Int!
+  claveEspacio: String!
+  horaInicio: String!
+  horaFin: String!
+}
+extend type Query {
+  grupoParaCambios(objetivo: GrupoRefInput!): GrupoParaCambios
+}
+input AplicarCambiosGrupoRequest {
+  objetivo: GrupoRefInput!
+  revisionGrupoEsperada: String!
+  origenOperacion: OrigenOperacionGrupo!
+  cambios: CambiosGrupoInput!
+  advertenciasConfirmadas: [String!]!
+  idempotencyKey: String!
+}
+input CambiosGrupoInput {
+  generales: CambiosGeneralesGrupoInput
+  cupos: CambiosCuposGrupoInput
+  mensajes: [CambioMensajeGrupoInput!]
+  modificadores: CambiosModificadoresGrupoInput
+  horarios: [CambioHorarioGrupoInput!]
+  planesCompartidos: [CambioPlanGrupoInput!]
+  materias: [CambioMateriaGrupoInput!]
+}
+input CambiosGeneralesGrupoInput {
+  tipo: String
+  idioma: String
+  liberable: Boolean
+  contenido: String
+}
+input CambiosCuposGrupoInput {
+  cupoGeneral: Int
+  primerIngreso: Int
+  reingreso: Int
+  complementario: Int
+}
+enum OperacionMensajeGrupo { REEMPLAZAR ELIMINAR }
+input CambioMensajeGrupoInput {
+  operacion: OperacionMensajeGrupo!
+  tipo: String!
+  texto: String
+}
+input CambiosModificadoresGrupoInput {
+  agregar: [String!]!
+  quitar: [String!]!
+}
+enum OperacionHorarioGrupo { ALTA ACTUALIZACION BAJA CAMBIO_ESPACIO }
+input CambioHorarioGrupoInput {
+  operacion: OperacionHorarioGrupo!
+  asignacionId: ID
+  datos: DatosHorarioGrupoInput
+  claveEspacio: String
+}
+input DatosHorarioGrupoInput {
+  plantilla: String
+  numDiaSemana: Int!
+  claveEspacio: String!
+  horaInicio: String!
+  horaFin: String!
+}
+enum OperacionElementoGrupo { ALTA ACTUALIZACION BAJA }
+input CambioPlanGrupoInput {
+  operacion: OperacionElementoGrupo!
+  programa: String!
+  materia: ID!
+  cupo: Int
+}
+enum OperacionMateriaGrupo { ALTA BAJA REEMPLAZO }
+enum RolMateriaGrupo { PRINCIPAL ADICIONAL }
+input CambioMateriaGrupoInput {
+  operacion: OperacionMateriaGrupo!
+  rol: RolMateriaGrupo!
+  materia: ID!
+  materiaNueva: ID
+}
+type DetalleReglaGrupo {
+  clave: String!
+  valor: String!
+}
+type ErrorReglaGrupo {
+  codigo: String!
+  regla: String!
+  campo: String
+  ruta: String
+  mensaje: String!
+  detalles: [DetalleReglaGrupo!]!
+}
+type AdvertenciaGrupo {
+  codigo: String!
+  regla: String!
+  ruta: String
+  mensaje: String!
+  confirmacion: String!
+  venceEn: String!
+  detalles: [DetalleReglaGrupo!]!
+}
+type CambioGrupoAplicado {
+  grupo: Grupo!
+  revisionGrupoNueva: String!
+  auditoriaId: ID!
+  advertenciasAplicadas: [AdvertenciaGrupo!]!
+}
+type CambioGrupoRechazado {
+  errores: [ErrorReglaGrupo!]!
+  advertencias: [AdvertenciaGrupo!]!
+}
+type CambioGrupoConflicto {
+  codigo: String!
+  mensaje: String!
+  grupoActual: Grupo!
+  revisionGrupoActual: String!
+}
+union AplicarCambiosGrupoResultado = CambioGrupoAplicado | CambioGrupoRechazado | CambioGrupoConflicto
+extend type Mutation {
+  aplicarCambiosGrupo(request: AplicarCambiosGrupoRequest!): AplicarCambiosGrupoResultado!
+}
+# Reserva de fase 7. No se agrega una mutación masiva ejecutable.
+enum ModoCambiosGrupos { TODO_O_NADA }
+input AplicarCambiosGruposRequest {
+  objetivos: [GrupoVersionadoInput!]!
+  origenOperacion: OrigenOperacionGrupo!
+  cambiosComunes: CambiosGrupoInput!
+  modo: ModoCambiosGrupos!
+  advertenciasConfirmadas: [String!]!
+  idempotencyKey: String!
+}

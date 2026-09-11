@@ -1,0 +1,79 @@
+"APIs para manejo de mensajes"
+type Query {
+  "Registros del Chat"
+  mensajesChat(sala: String, ultimos: Int): [MensajeChat]
+  "Lista de chats privados existentes del usuario autenticado"
+  chatsPrivadosUsuario(usuario: String!): [ChatPrivadoUsuario]!
+  "Registros del Chat Contador"
+  mensajesChatContador(sala: String, usuario: String): MensajesContador!
+  "Mensaje de Chat"
+  mensajeChat(id: Int): MensajeChat
+  "Reaccionar a Mensaje de Chat"
+  reaccionarMensaje(id: Int, usuario: String, reaccion: Int): Boolean!
+  "Reaccionar a Sala"
+  reaccionarSala(sala: String, usuario: String, reaccion: Int): Boolean!
+  "Marcar mensajes de Chat como leídos/no leídos"
+  marcarLeidos(sala: String, usuario: String, leidos: Boolean): Boolean!
+  "Reacciones de una sala"
+  reaccionesSala(sala: String): [ReaccionChat]!
+  "Guardar registro en Bitácora"
+  guardarBitacora(usuario: String!, origen: String!, grupo: String!, periodo: String!, cambio: String!, campo: String!, valorAnterior: String!, valorNuevo: String!): Boolean! @deprecated(reason: "Escritura pública deshabilitada; la auditoría se genera en operaciones del servidor.")
+  "Obtener la bitácora de un grupo"
+  bitacoraGrupo(usuario: String!, origen: String!, grupo: String!, periodo: String!): [Bitacora]!
+}
+
+type MensajeChat {
+  id: ID!
+  sala: String
+  usuario: String!
+  nombreUsuario: String
+  fecha: String!
+  destinatarios: [String]!
+  mensaje: String!
+  esUnEmoji: Boolean
+  enRespuestaA: ID
+  estatus: Int
+  reacciones: [ReaccionContador]
+}
+
+type ReaccionChat {
+  id: ID!
+  mensaje: Int!
+  usuario: String!
+  reaccion: Int!
+  fecha: String!
+  sala: String
+}
+
+type ReaccionContador {
+  reaccion: Int!
+  contador: Int!
+}
+
+type MensajesContador {
+  total: Int!
+  nuevos: Int!
+  leidos: Int!
+  usuarioSuscrito: Boolean!
+}
+
+type ChatPrivadoUsuario {
+  sala: String!
+  contraparte: Usuario!
+  ultimoMensajeFecha: String!
+  pendientes: Int!
+  totalMensajes: Int!
+}
+
+type Bitacora {
+  origen: String!
+  usuario: String!
+  grupo: String!
+  periodo: String!
+  secuencia: Int!
+  cambio: String!
+  campo: String!
+  valorAnterior: String!
+  valorNuevo: String!
+  fecha: String
+}

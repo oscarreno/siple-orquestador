@@ -1,0 +1,93 @@
+<p-toast></p-toast>
+@if (grupoActual(); as grupo) {
+  <div class="fondo editor-shell">
+    @if (guardadoNoConfirmado()) {
+      <section class="editor-recovery" role="status" aria-live="polite">
+        <strong>Guardado no confirmado</strong>
+        <p>Tu edición se conserva. Consulta los datos guardados antes de realizar otro cambio.</p>
+        <button pButton type="button" (click)="consultarEstadoGuardado()" [disabled]="consultandoGuardado()">
+          {{ consultandoGuardado() ? 'Consultando…' : 'Consultar estado actual' }}
+        </button>
+        @if (grupoConsultado(); as actual) {
+          <p>Estado consultado de {{ actual.clave }}: cupo {{ actual.cupoGeneral }}, inscritos {{ actual.alumnosInscritos }}.</p>
+          <p>Al usar estos datos se descartará tu edición pendiente. Podrás revisar todos los campos antes de hacer nuevos cambios.</p>
+          <button pButton type="button" class="p-button-outlined" (click)="usarEstadoConsultado()" [disabled]="consultandoGuardado()">
+            Descartar mi edición y usar datos actuales
+          </button>
+        }
+      </section>
+    }
+    <p-tabs [value]="seccionActiva()" [lazy]="true" (valueChange)="handleChange($event)" class="editor-tabs">
+      <p-tablist>
+        <p-tab [value]="0">Generales</p-tab>
+        <p-tab [value]="1">Cupos</p-tab>
+        @if (puedeEditarEspacios()) {
+          <p-tab [value]="2">Espacios</p-tab>
+        }
+        <p-tab [value]="3">Planes</p-tab>
+        <p-tab [value]="5">Mensajes</p-tab>
+        <p-tab [value]="4">Bitacora</p-tab>
+      </p-tablist>
+
+      <p-tabpanels>
+        <p-tabpanel [value]="0">
+          <div class="editor-subpanel-shell">
+            <app-editar-generales [grupo]="grupo" [bloqueado]="bloqueado || guardadoNoConfirmado() || estaGrabando()" (generalesModificados)="generalesModificados($event)"></app-editar-generales>
+          </div>
+        </p-tabpanel>
+
+        <p-tabpanel [value]="1">
+          <div class="editor-subpanel-shell">
+            <app-editar-cupos [grupo]="grupo" [bloqueado]="bloqueado || guardadoNoConfirmado() || estaGrabando()" (cuposModificados)="cuposModificados($event)" (cuposConError)="cuposConError($event)"></app-editar-cupos>
+          </div>
+        </p-tabpanel>
+
+        @if (puedeEditarEspacios()) {
+          <p-tabpanel [value]="2">
+            <div class="editor-subpanel-shell">
+              <app-editar-espacios [grupo]="grupo" [bloqueado]="bloqueado || guardadoNoConfirmado() || estaGrabando()" (espaciosModificados)="espaciosModificados($event)"></app-editar-espacios>
+            </div>
+          </p-tabpanel>
+        }
+
+        <p-tabpanel [value]="3">
+          <div class="editor-subpanel-shell">
+            <app-editar-planes [grupo]="grupo" [bloqueado]="bloqueado || guardadoNoConfirmado() || estaGrabando()" (planesModificados)="planesModificados($event)"></app-editar-planes>
+          </div>
+        </p-tabpanel>
+
+        <p-tabpanel [value]="5">
+          <div class="editor-subpanel-shell">
+            <app-editar-mensajes [grupo]="grupo" [bloqueado]="bloqueado || guardadoNoConfirmado() || estaGrabando()" (mensajesModificados)="mensajesModificados($event)"></app-editar-mensajes>
+          </div>
+        </p-tabpanel>
+
+        <p-tabpanel [value]="4">
+          <div class="editor-subpanel-shell">
+            <app-bitacora [grupo]="grupo"></app-bitacora>
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+
+    <div class="editor-footer">
+      @if (estaGrabando()) {
+        <div class="editor-footer__status">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>...guardando...</span>
+        </div>
+      }
+
+      <button
+        pButton
+        type="button"
+        class="p-button-raised p-button-rounded p-button-warning editor-footer__save"
+        styleClass="p-button-warning"
+        (click)="guardar()"
+        [disabled]="botonDeshabilitado() || estaGrabando() || guardadoNoConfirmado() || consultandoGuardado() || cuposTienenError() || !huboCambios()"
+      >
+        <span class="pi pi-save"></span><span>Guardar</span>
+      </button>
+    </div>
+  </div>
+}
