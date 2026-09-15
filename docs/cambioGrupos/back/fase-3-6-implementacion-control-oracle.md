@@ -37,9 +37,11 @@ en un rollback MSSQL y repetir los SP; esa propuesta anterior queda retirada.
   truncamiento. Las transacciones cortas se ejecutan en un solo batch MSSQL.
 - `Grupos.guardarGrupo`: integración activable e invalidación de caché al fallar.
 - GraphQL: argumento opcional `idempotencyKey` y consulta `estadoGuardadoOracle`.
-- `ORACLE_GUARDADO_SELECTIVO=SI`: en la ruta legacy agregada, un cambio efectivo
-  de cupos/datos generales invoca solo `SIPF1_ALTAGRUPO2`; horarios, mensajes y
-  planes se ejecutan solo cuando el diff del servidor incluye ese dominio.
+- `ORACLE_GUARDADO_SELECTIVO=SI`: en la ruta legacy agregada, los cambios
+  efectivos de encabezado invocan `SIPF1_ALTAGRUPO2`; los horarios/espacios se
+  reenvían siempre porque omitirlos puede dejar una reserva eliminada en Oracle.
+  Mensajes y planes se ejecutan solo cuando el diff del servidor incluye esos
+  dominios.
 - Front de edición: conserva una clave por intento Oracle y consulta el estado
   durable antes de permitir otro guardado tras una respuesta incierta.
 - Migración en `siple-backTS/scripts/sql/control-plane-oracle-legacy.sql`, con
@@ -78,8 +80,9 @@ mismo contenido ante un reintento.
 1. Guardado normal: comprobar valores en una lectura nueva; la operación debe
    quedar APLICADA y Activa=0.
 2. Con `ORACLE_GUARDADO_SELECTIVO=SI`, cambiar solo un cupo y revisar el detalle:
-   `sp.encabezado=true` y `sp.horarios`, `sp.mensajes`, `sp.planesCompartidos`
-   en `false`.
+   `sp.encabezado=true`, `sp.horarios=true`, `sp.mensajes=false` y
+   `sp.planesCompartidos=false`. Confirmar que los espacios/horarios vigentes
+   se reenviaron y no desaparecieron.
 3. Repetir exactamente el mismo request: misma respuesta persistida, sin nuevas
    llamadas SP ni otra inserción de bitácora. La notificación socket puede
    repetirse; no forma parte de la garantía de replay.
@@ -174,10 +177,12 @@ ORACLE_CONTROL_GUARDADO=SI
 ORACLE_GUARDADO_SELECTIVO=SI
 ```
 
-Se verificó un guardado real mixto de `V2026|CPC061D`: el detalle registró
-`encabezado=true`, `mensajes=true`, `horarios=false` y
-`planesCompartidos=false`. La operación quedó `APLICADA`, `Activa=0`, con la
-clave `9206e083-15c0-4738-8ea4-ce4cdbc90382`.
+Se verificó un guardado real mixto de `V2026|CPC061D` antes de detectar esta
+regla: el detalle registró `encabezado=true`, `mensajes=true`,
+`horarios=false` y `planesCompartidos=false`. Esa evidencia originó la
+corrección para reenviar siempre horarios/espacios. La operación quedó
+`APLICADA`, `Activa=0`, con la clave `9206e083-15c0-4738-8ea4-ce4cdbc90382`;
+queda pendiente repetirla con el comportamiento corregido.
 
 El Frontend de producción quedó configurado para enviar clave explícita y el
 build de producción terminó correctamente con hash `430575054d2bdd32`. La
