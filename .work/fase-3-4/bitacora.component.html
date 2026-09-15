@@ -1,0 +1,85 @@
+@if (yaLeyoBitacora()) {
+  @if (cargandoBitacora()) {
+    <div class="bitacora-loading">
+      <p-progressSpinner [style]="{ width: '56px', height: '56px' }" strokeWidth="4"></p-progressSpinner>
+      <p>Cargando bit&aacute;cora del grupo...</p>
+    </div>
+  } @else if (bitacora().length > 0) {
+    <div class="bitacora-layout">
+      <p-scrollPanel
+        [style]="{ width: '100%', height: 'min(62vh, calc(100vh - 21rem))' }"
+        styleClass="scrollpanel-bar bitacora-scrollpanel"
+      >
+        <p-table
+          [value]="filasVisibles()"
+          [style]="{ width: '100%' }"
+          [tableStyle]="{ width: '100%', 'table-layout': 'fixed' }"
+          styleClass="p-datatable-sm p-datatable-striped bitacora-table"
+          [resizableColumns]="true"
+          columnResizeMode="expand"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="renglon1 encabezadoTabla bitacora-col bitacora-col--origen" pResizableColumn></th>
+              <th class="renglon1 encabezadoTabla bitacora-col bitacora-col--secuencia" pSortableColumn="secuencia" pResizableColumn>
+                # <p-sortIcon field="secuencia"></p-sortIcon>
+              </th>
+              <th class="renglon1 encabezadoTabla bitacora-col bitacora-col--usuario" pSortableColumn="usuario" pResizableColumn>
+                Usuario <p-sortIcon field="usuario"></p-sortIcon>
+              </th>
+              <th class="renglon1 encabezadoTabla bitacora-col bitacora-col--cambio" pSortableColumn="cambio" pResizableColumn>
+                Cambio <p-sortIcon field="cambio"></p-sortIcon>
+              </th>
+              <th class="renglon1 encabezadoTabla bitacora-col bitacora-col--campo" pResizableColumn>Campo</th>
+              <th class="renglon1 encabezadoTabla bitacora-col bitacora-col--valor" pResizableColumn>Anterior</th>
+              <th class="renglon1 encabezadoTabla bitacora-col bitacora-col--valor" pResizableColumn>Nuevo</th>
+              <th class="renglon1 encabezadoTabla bitacora-col bitacora-col--fecha" pSortableColumn="fecha" pResizableColumn>
+                Fecha <p-sortIcon field="fecha"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-renglon>
+            <tr>
+              <td class="bitacora-cell bitacora-cell--origen">
+                <div class="bitacora-origin">
+                  @if (grupo().origen === 'ORACLE') {
+                    <img
+                      class="fondoBadge p-shadow-2"
+                      pTooltip="Origen: ADG"
+                      tooltipPosition="bottom"
+                      src="../../../../assets/images/ADG-24.png"
+                    />
+                  } @else {
+                    <img
+                      class="fondoBadge"
+                      pTooltip="Origen: Planeaci&oacute;n"
+                      tooltipPosition="bottom"
+                      src="../../../../assets/images/S-Circulo.svg"
+                      style="width: 20px"
+                    />
+                  }
+                </div>
+              </td>
+              <td class="bitacora-cell bitacora-cell--secuencia">{{ renglon.esContinuacion ? '↳' : renglon.secuencia }}</td>
+              <td class="bitacora-cell bitacora-cell--usuario">
+                <app-usuario class="foto" [usuario]="renglon.usuario"></app-usuario>
+              </td>
+              <td class="bitacora-cell bitacora-cell--texto">{{ renglon.cambio }}</td>
+              <td class="bitacora-cell bitacora-cell--texto">{{ renglon.campo }}</td>
+              <td class="bitacora-cell bitacora-cell--texto">{{ renglon.valorAnterior }}</td>
+              <td class="bitacora-cell bitacora-cell--texto">{{ renglon.valorNuevo }}</td>
+              <td class="bitacora-cell bitacora-cell--fecha">{{ renglon.fecha }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-scrollPanel>
+    </div>
+  } @else {
+    <div class="bitacora-empty flex align-items-center border-bottom-1 surface-border surface-overlay w-full">
+      <p class="text-2xl w-10">
+        No se tienen registros en bit&aacute;cora para el grupo.
+      </p>
+    </div>
+  }
+}

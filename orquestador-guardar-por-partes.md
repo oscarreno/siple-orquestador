@@ -1,5 +1,20 @@
 # Orquestador: guardado parcial y coordinado de grupos
 
+## Estado vigente — 2026-09-15
+
+Control durable Oracle implementado localmente en `guardarGrupo`, activable con
+`ORACLE_CONTROL_GUARDADO=SI` después de ejecutar la migración MSSQL. La reserva
+se confirma antes de Oracle y conserva la exclusión tras una caída; sustituye
+la propuesta anterior de mantener una transacción MSSQL abierta durante los SP.
+Incluye clave de idempotencia opcional, replay, consulta autenticada de estado e
+invalidación de caché al fallar. La suite completa, TypeScript, schema y dist
+pasan. Migración sin ejecutar; sin despliegue ni cambios Front.
+
+Siguiente paso: aplicar migración en pruebas, activar y verificar replay y
+concurrencia real. La reconciliación sigue supervisada; no hay revisión universal
+de writers externos ni auditoría distribuida. Guía vigente:
+`docs/cambioGrupos/back/fase-3-6-implementacion-control-oracle.md`.
+
 ## 1. Misión
 
 Este documento es el contexto operativo para el agente orquestador responsable de
@@ -690,7 +705,7 @@ Estados válidos: `PENDIENTE`, `EN CURSO`, `EN REVISIÓN`, `BLOQUEADO`,
 | 0. Inventario y congelamiento | APROBADO | Orquestador + Front + Back | Autorización y diagnóstico inicial | Proponer contrato v1 con el censo consolidado | Reportes Front/Back y líneas base registrados en 13.6 | Fallos de línea base conocidos, sin cambios funcionales de esta fase | 2026-09-04 |
 | 1. Decisiones y permisos | APROBADO | Orquestador + negocio | Fase 0 aprobada y decisiones contrastadas | Diseñar contrato v1 contra la matriz aprobada | `docs/cambioGrupos/matriz-reglas-permisos-v1.md` | Ninguno; cambios actuales de UI quedan como migración | 2026-09-04 |
 | 2. Contrato v1 | APROBADO | Back revisó; Front revisó; Orquestador aprobó | Fase 1 aprobada | Iniciar bloque 3.1 de fundaciones | `docs/contratos/grupos-v1/revision-aprobacion-v1.md`; validadores OK; tres paquetes idénticos por SHA-256 | Ninguno para diseño; reservas no habilitan horarios, principal/intercambios ni operaciones sin soporte | 2026-09-08 |
-| 3. Fundaciones Back | EN CURSO | Front completó 3.1-A; Back implementó restricción 3.1-B local | Contrato v1 aprobado; contención Front verificada | Completar auditoría/atomicidad y regresión interna; comprobar clientes antes de desplegar | `docs/cambioGrupos/back/fase-3-1b-implementacion.md`: pruebas focalizadas y tsc OK | Despliegue pendiente de clientes compatibles; regresión general reproduce fallo rollback Oracle; fundaciones servidor pendientes | 2026-09-11 |
+| 3. Fundaciones Back | EN CURSO | Front completó 3.1-A; Back implementó 3.1-B, auditoría derivada 3.2-A, rollback Oracle 3.2-B y aislamiento local 3.4-A/3.4-B | Contrato v1 aprobado; contención Front verificada; regresión local y auditoría normalizada verificadas | Obtener evidencia DBA de procedimientos, DDL, writers y bloqueo; después implementar revisión compartida, auditoría Oracle atómica e idempotencia | `docs/cambioGrupos/back/fase-3-1b-implementacion.md`, `fase-3-2a-implementacion.md`, `fase-3-2b-rollback-oracle.md`, `fase-3-3-lectura-bitacora.md`, informes 3.4-A/3.4-B y paquete 3.5; regresión completa, pruebas focalizadas, tsc y dist OK en los bloques previos | La auditoría Oracle aún es post-commit en MSSQL; faltan evidencia de commits internos, DDL/revisión/idempotencia y censo completo de writers; despliegue pendiente de clientes compatibles | 2026-09-14 |
 | 4. Cupos y mensajes | PENDIENTE | Back + Front | Fundaciones aprobadas | Implementar primera vertical | Sin evidencia de vertical v1 | Pruebas de reglas de cupo | 2026-09-04 |
 | 5. Espacios y horarios | PENDIENTE | Back + Front | Vertical inicial aprobada | Definir identidad estable de horario | Sin evidencia de migración | Política PB/capacidad ya registrada | 2026-09-04 |
 | 6. Edición completa | PENDIENTE | Front + Back | Comandos por dominio aprobados | Migrar primer segmento y renombrar `Facade` | Sin evidencia de migración | Censo de consumidores `Facade` | 2026-09-04 |
@@ -698,6 +713,25 @@ Estados válidos: `PENDIENTE`, `EN CURSO`, `EN REVISIÓN`, `BLOQUEADO`,
 | 8. Retiro de legacy | PENDIENTE | Back + Front; Orquestador aprueba | Censo y telemetría en cero | Retirar una ruta verificada | Sin evidencia de cero uso | Consumidores y fallback pendientes | 2026-09-04 |
 
 ### 13.5 Criterios de aprobación persistentes
+
+**Actualización 3.4-A (2026-09-14): aislamiento de conexión implementado localmente.**
+Con autorización del usuario se modificó `siple-backTS/src/system/oracle.ts`:
+cada `withTransaction` adquiere/libera su propia conexión del pool; inicialización
+concurrente protegida y conexión legacy separada. Prueba nueva de concurrencia
+simulada y errores OK; regresiones previas, TypeScript y dist OK. Informe y
+pruebas manuales: `docs/cambioGrupos/back/fase-3-4a-aislamiento-oracle.md`.
+Esta actualización sustituye el punto de detención previo a código para este
+bloque. Sigue pendiente la prueba con Oracle real y el esquema de revisión,
+auditoría e idempotencia; no se habilita v1 ni se aprueba toda la Fase 3.
+
+**Actualización 3.4-B (2026-09-14): auditoría Oracle normalizada.** El caso
+`V2026|CPC3326G` reprodujo falsos positivos por campos omitidos, `exportable`
+fuera de la escritura Oracle y POPUP HTML/Base64. Backend ahora compara el
+estado efectivo de Oracle, excluye campos no persistidos y normaliza el orden y
+contenido de mensajes. La prueba específica deja únicamente los dos cambios
+de cupo; suite completa, TypeScript y dist OK. Informe:
+`docs/cambioGrupos/back/fase-3-4b-auditoria-normalizada.md`. La auditoría aún es
+post-commit en MSSQL y no hay revisión/idempotencia v1.
 
 **Implementación Back 3.1-B (2026-09-11): restricción verificada localmente y en
 smoke test HTTP de pruebas.**
@@ -710,6 +744,75 @@ SQL simulado; falta cobertura integral de sus operaciones llamadoras. El proceso
 temporal se detuvo y no se desplegó a un servicio persistente: falta evidencia de
 clientes activos compatibles. Informe: `docs/cambioGrupos/back/fase-3-1b-implementacion.md`.
 La Fase 3 continúa; cerrar 3.1 no equivale a cerrar todas sus fundaciones.
+
+**Implementación Back 3.2-A (2026-09-11): auditoría derivada por Backend en MSSQL y Oracle.**
+El guardado agregado carga el estado persistido, compara el candidato y pasa al
+SQL y a la bitácora Oracle únicamente las diferencias calculadas por servidor;
+la prueba ignora un cambio fabricado por el cliente y conserva las diferencias
+reales en ambos orígenes. La regresión completa, el validador de auditoría,
+TypeScript y `dist` pasan. La bitácora Oracle todavía se escribe después del
+commit porque no existe una tabla/procedimiento de auditoría Oracle ni outbox
+durable en el contrato actual. No se habilitan aún revisión compartida ni
+idempotencia.
+Informe: `docs/cambioGrupos/back/fase-3-2a-implementacion.md`.
+
+**Implementación Back 3.2-B (2026-09-11): rollback Oracle verificado.** Los
+errores de horario, mensaje y plan ya no se absorben dentro de la transacción;
+la prueba de regresión confirma que el fallo produce rollback y evita commit.
+La regresión completa de `guardarGrupo`, TypeScript y `dist` pasan. La bitácora
+Oracle aún se persiste después del commit y la Fase 3 continúa. Informe:
+`docs/cambioGrupos/back/fase-3-2b-rollback-oracle.md`.
+
+**Implementación Back 3.3 (2026-09-11): lectura robusta de bitácora.** La
+consulta de `BitacoraSIPLE` fallaba al convertir manualmente a JSON una fila con
+comillas, barras invertidas o saltos de línea. `database.arreglaObjeto` ahora
+construye directamente el objeto de salida. La regresión completa, TypeScript y
+`dist` pasan. Informe: `docs/cambioGrupos/back/fase-3-3-lectura-bitacora.md`.
+
+**Diseño Back 3.4 (2026-09-14): fundaciones transaccionales listo para
+implementación.** Se fijó la secuencia de bloqueo y commit para Oracle, el
+registro durable de idempotencia, la revisión común a writers legacy y la
+auditoría nativa ligada a la transacción. También se documentó el outbox como
+única alternativa para reflejos MSSQL sin prometer transacción distribuida.
+El diseño no equivale a implementación: Back debe entregar migraciones,
+procedimientos, pruebas de concurrencia/replay/rollback y censo de writers antes
+de habilitar la API v1. Informe:
+`docs/cambioGrupos/back/fase-3-4-fundaciones-transaccionales.md`.
+
+**Cierre de preparación 3.4 (2026-09-14): detenido antes de código.** La
+inspección del Backend confirmó que `Oracle.withTransaction` reutiliza una
+conexión global, que las rutas Oracle legacy escriben fuera de la transacción
+del agregado y que no hay DDL versionado para revisión, auditoría o idempotencia.
+Se levantó la matriz mínima de writers y las decisiones que deben confirmar
+Backend/DBA. No se modificó `siple-backTS`. Informe:
+`docs/cambioGrupos/back/fase-3-4-preimplementacion.md`.
+
+**Preimplementación 3.5 (2026-09-14): revisión e idempotencia detenidas antes
+de nuevo código.** Se cerró el inventario de writers Oracle y se preparó el
+paquete de consultas para DBA y la prueba controlada de `COMMIT`/`ROLLBACK` de
+`SIPF1_ALTAGRUPO2`, `SIPF1_ALTAHORARIO`, `SIPF1_ALTAMENSAJE` y
+`SIPF1_ALTAGMAP22`. No se ejecutaron consultas contra la BD ni se modificó
+Backend en este bloque. No se inicia la siguiente implementación hasta confirmar
+que los procedimientos respetan la transacción externa, que no hay writers sin
+censar y que existen soportes aprobados para revisión, auditoría e idempotencia.
+Informe: `docs/cambioGrupos/back/fase-3-5-preimplementacion-revision-idempotencia.md`.
+
+**Bloqueo transaccional confirmado (2026-09-14).** DBA informó que
+`SIPF1_ALTAGRUPO2`, `SIPF1_ALTAHORARIO` y `SIPF1_ALTAMENSAJE` hacen `COMMIT`
+interno. `SIPF1_ALTAGMAP22` acepta `autocommit=N` por defecto. Por ello, la
+conexión aislada y el `ROLLBACK` externo no pueden hacer atómico el agregado
+actual; `ALTAGMAP22` solo queda condicionado a enviar `N` explícitamente. No se
+modifica Backend hasta contar con variantes sin commit, un procedimiento
+agregado transaccional o una estrategia compensatoria aprobada.
+
+**Preimplementación 3.6 (2026-09-14): control plane MSSQL compatible con SP
+legacy.** Se diseñó una fila de control por grupo y un ledger durable de
+idempotencia en MSSQL, bloqueados mediante `UPDLOCK, HOLDLOCK` durante la
+operación Oracle. Los estados `APLICADA`, `PARCIAL` e `INCIERTA` permiten
+reconciliar sin fingir rollback Oracle. Se prepararon el DDL y la matriz de
+transiciones; no se ejecutó DDL ni se modificó Backend en este bloque.
+Informes: `docs/cambioGrupos/back/fase-3-6-preimplementacion-control-plane-mssql.md`
+y `control-plane-oracle-legacy.sql`.
 
 **Implementación Front 3.1-A (sesión 11): APROBADA localmente.** Una sola
 mutación sin fallback automático; editor conserva borrador ante resultado incierto,
@@ -812,7 +915,7 @@ el contrato v1.
 | --- | --- | --- |
 | Front | `cmd /c npm run build` | **OK**. Preflight CSS: 478 archivos, 0 variables indefinidas; build de producción completado. |
 | Front | `cmd /c npm test -- --watch=false --browsers=ChromeHeadless` | **FALLA BASE**. Error de exportación `zone.js`, error TS2322 en `websockets.service.ts:171` y `EPERM` al escribir caché Angular; no se ejecutaron specs. |
-| Back | `cmd /c npm run validar:guardar-grupo` | **FALLA BASE REPRODUCIBLE**. `validate-guardarGrupo.ts:269` esperaba rechazo/rollback, pero Oracle convirtió el fallo intermedio en warnings y confirmó. |
+| Back | `cmd /c npm run validar:guardar-grupo` | **FALLA BASE REPRODUCIBLE**. `pruebas/validate-guardarGrupo.ts:269` esperaba rechazo/rollback, pero Oracle convirtió el fallo intermedio en warnings y confirmó. |
 
 #### Discrepancias y riesgos que pasan a la siguiente fase
 
@@ -885,6 +988,13 @@ de memoria conversacional.
 | 9 | 2026-09-08 | Fase 2: revisión independiente, ratificación y espejos | Paquete `docs/contratos/grupos-v1/` en los tres repositorios; inputs generados, lectura GraphQL y validadores en coordinación; tablero y guía alineados | Back/Front ratifican; validadores de inputs/SDL/consumo OK; `verificar-espejos-v1.cjs` confirma ocho archivos y manifiesto idénticos en los tres repositorios | Solo contrato/modelos documentales y validadores; sin código productivo ni BD; documentos preexistentes Front preservados | Fase 3, bloque 3.1: restringir auditoría pública con censo, preservación del guardado legítimo y regresión proporcional |
 | 10 | 2026-09-08 | Fase 3.1: preparación hasta punto de código | `docs/cambioGrupos/fase-3-1-listo-para-codigo.md`; censo de resolver/schema/Log/Grupos y servicios/editor Front; tablero | Inspección directa y censo; diffs de archivos versionados Front/Back vacíos; espejos v1 intactos por SHA-256; sin nuevas pruebas funcionales | No se modificó código productivo ni contrato aprobado; no se ejecutó BD; ordena contención Front antes de restricción Back para evitar fallo posterior a escritura | Implementar 3.1-A: pruebas y cambio en guardarGrupoDBO/manejo de error del editor; preparación concluida por instrucción del usuario |
 | 11 | 2026-09-08 | Fase 3.1-A: implementación Front | Servicio de datos, editor TS/HTML/CSS; dos specs, fixture y entrada/config focalizadas; informe Front | 29 pruebas ChromeHeadless OK; build producción y CSS OK; suite general reproduce zone-testing/TS2322 previos; UTF-8 y contrato intactos | Sin Backend/BD/despliegue; contención de fallback y recuperación explícita; validación DOM, sin captura gráfica autenticada | Implementar 3.1-B: restringir bitácora pública Backend con pruebas de resolver/error y preservación de llamadas internas |
+| 12 | 2026-09-14 | Fase 3.4: diseño de fundaciones transaccionales | `docs/cambioGrupos/back/fase-3-2a-implementacion.md`, `fase-3-2b-rollback-oracle.md`, `fase-3-3-lectura-bitacora.md`, contrato v1 y `docs/cambioGrupos/back/fase-3-4-fundaciones-transaccionales.md`; inspección de `siple-backTS` | Revisión estática del flujo actual: Oracle confirma grupo y después intenta bitácora MSSQL; no hay revisión compartida ni idempotencia efectiva en `guardarGrupo` | No se modificó Back/Front ni se conectó BD; se fijó diseño implementable y criterios de salida | Implementar en Back el registro de revisión, auditoría e idempotencia; entregar censo de writers y pruebas de concurrencia/replay/rollback |
+| 13 | 2026-09-14 | Fase 3.4: preparación pre-código | `siple-backTS`: wrapper Oracle, `Grupos.ts`, resolvers/schema, auth, documentación existente y estado Git; `docs/cambioGrupos/back/fase-3-4-preimplementacion.md` | Inspección estática: se confirmó conexión Oracle global, writers legacy independientes, bitácora MSSQL post-commit y ausencia de DDL versionado; no se ejecutaron pruebas con BD | No se modificó ningún archivo de Front/Back; se preservaron cambios locales existentes | Confirmar conexión por transacción, DDL/procedimientos con DBA y alcance de writers; después iniciar modificación de código |
+| 14 | 2026-09-14 | Fase 3.4-B: auditoría Oracle normalizada | `siple-backTS/src/clases/Grupos.ts`, prueba `pruebas/validate-auditoria-normalizada.ts`, package y `docs/cambioGrupos/back/fase-3-4b-auditoria-normalizada.md` | Caso sintético `CPC3326G`: solo cupoPrimerIngreso y cupoComplementario; `validar:todas`, TypeScript, dist y diff check OK | No se conectó BD ni se habilitó API v1; se conserva comportamiento MSSQL y bitácora Oracle post-commit | Repetir caso real y después implementar revisión compartida/idempotencia con soporte DBA |
+| 15 | 2026-09-14 | Fase 3.5: paquete previo a revisión DBA | `docs/cambioGrupos/back/fase-3-5-preimplementacion-revision-idempotencia.md`, `diagnostico-oracle-revision-idempotencia.sql`; inventario de writers y procedimientos Oracle | Inspección estática completada; no se ejecutaron consultas ni pruebas contra BD; no se modificó Backend en este bloque | Se preservan todos los cambios locales existentes; revisión, idempotencia y auditoría nativa siguen sin habilitarse | Obtener evidencia DBA de firmas, dependencias, triggers, commits internos y bloqueo concurrente; después decidir si procede el siguiente cambio de código |
+| 16 | 2026-09-14 | Fase 3.5: bloqueo por commits internos Oracle | Evidencia DBA sobre `SIPF1_ALTAGRUPO2`, `SIPF1_ALTAHORARIO`, `SIPF1_ALTAMENSAJE` y `SIPF1_ALTAGMAP22`; actualización del paquete 3.5 | Se confirmó `COMMIT` interno en los tres primeros; `ALTAGMAP22` acepta `autocommit=N`; no se ejecutó código ni BD desde el repositorio | La atomicidad del agregado actual queda bloqueada; no se habilitan revisión/idempotencia v1 hasta una alternativa transaccional aprobada | Obtener variantes sin commit, procedimiento agregado o decisión compensatoria formal; luego reevaluar implementación |
+| 17 | 2026-09-14 | Fase 3.5: primer bloque compatible con SP legacy | `siple-backTS/src/clases/Grupos.ts`, `pruebas/validate-guardarGrupo.ts`, paquete 3.5 | TypeScript, `validar:todas` y `dist`: OK; caso simulado posterior al encabezado devuelve `ORACLE_APLICACION_PARCIAL`; `ALTAGMAP22` verifica `autocommit=N` | No se movieron SP ni se prometió atomicidad; se prevalidan plantillas, se explicita el estado parcial y se conserva la auditoría existente | Implementar control plane para serialización/idempotencia durable y reconciliación; probar primero un guardado real con planes |
+| 18 | 2026-09-14 | Fase 3.6: preimplementación del control plane MSSQL | `docs/cambioGrupos/back/fase-3-6-preimplementacion-control-plane-mssql.md`, `control-plane-oracle-legacy.sql`; contrato v1 y modelo MSSQL inspeccionados | Diseño y DDL preparados; no se ejecutó DDL, no se consultó BD y no se modificó Backend en este bloque | Se conserva el modo compatible con SP legacy; el control plane distinguirá `APLICADA`, `PARCIAL` e `INCIERTA` sin prometer transacción distribuida | DBA confirma esquema, retención, permisos y timeout; después implementar `Database.withTransaction`, repositorio y pruebas de replay/conflicto/reconciliación |
 
 La primera sesión ejecutable es la Fase 0 y no debe cambiar comportamiento
 funcional. Su salida mínima es el inventario consolidado, el mapa de campos,

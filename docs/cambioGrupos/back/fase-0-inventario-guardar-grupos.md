@@ -74,7 +74,7 @@ control condicional de concurrencia.
 
 | Comando | Resultado |
 | --- | --- |
-| `cmd /c npm run validar:guardar-grupo` | **FALLA BASE REPRODUCIBLE** en `scripts/validate-guardarGrupo.ts:269`. `pruebaRollbackIntermedioORACLE` esperaba rechazo y rollback, pero el procedimiento de prueba terminó en commit porque `guardarGrupoOracleAgregado` convierte fallos de hijos en warnings. |
+| `cmd /c npm run validar:guardar-grupo` | **FALLA BASE REPRODUCIBLE** en `pruebas/validate-guardarGrupo.ts:269`. `pruebaRollbackIntermedioORACLE` esperaba rechazo y rollback, pero el procedimiento de prueba terminó en commit porque `guardarGrupoOracleAgregado` convierte fallos de hijos en warnings. |
 | Suite declarada | No existe script `test` ni se encontraron specs dedicadas para el guardado; el validador anterior es la cobertura específica disponible. |
 
 ## Riesgos y discrepancias confirmadas

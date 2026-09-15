@@ -11,11 +11,11 @@ envuelto por GraphQL, conservando prioridad de códigos explícitos.
 
 Archivos: `src/graphql/resolvers/queryMensajes.ts`,
 `src/graphql/schema/mensajes.schema.graphql`, `src/system/errorHandling.ts` y
-`scripts/validate-bitacora-publica.ts`.
+`pruebas/validate-bitacora-publica.ts`.
 
 ## Verificación ejecutada
 
-- `node -r ts-node/register/transpile-only scripts/validate-bitacora-publica.ts`:
+- `node -r ts-node/register/transpile-only pruebas/validate-bitacora-publica.ts`:
   OK. Seis rechazos autenticados entre usuarios y orígenes, rechazo sin sesión,
   cero llamadas públicas a Log/SQL, controles de lectura, dos escrituras internas
   con SQL simulado y regresión del formateador. Resolver, autenticación, Log,
@@ -31,7 +31,10 @@ Archivos: `src/graphql/resolvers/queryMensajes.ts`,
 - Suite focalizada del Front actualizada contra su código vigente: `29 SUCCESS`
   en ChromeHeadless 152. La suite confirma que los errores del guardado agregado
   no activan llamadas legacy y que el editor conserva el estado de recuperación.
-- `node -r ts-node/register/transpile-only scripts/validate-guardarGrupo.ts`:
+- Front de desarrollo en `127.0.0.1:4201`: compiló correctamente y respondió
+  `HTTP 200` con `<app-root>`. El proceso temporal se detuvo y los puertos 3101
+  y 4201 quedaron libres.
+- `node -r ts-node/register/transpile-only pruebas/validate-guardarGrupo.ts`:
   falla en `pruebaRollbackIntermedioORACLE`, `Missing expected rejection`,
   coincidente con el fallo registrado en la línea base. No se declara verde la
   regresión general. Grupos y ese validador no fueron modificados.
@@ -43,8 +46,11 @@ la falla de rollback deben resolverse en las fundaciones posteriores.
 
 ## Despliegue y siguiente paso
 
-No hubo despliegue ni conexión a BD. Falta evidencia de actualización de clientes
-activos y pestañas antiguas: el censo local no demuestra esa condición.
+No hubo despliegue a un servicio persistente ni escrituras de datos desde las
+pruebas de este bloque. El proceso temporal sí estableció las conexiones de
+inicio configuradas con MSSQL y Oracle para levantar el servidor. Falta evidencia
+de actualización de clientes activos y pestañas antiguas: el censo local no
+demuestra esa condición.
 Desplegar requiere comprobar compatibilidad y ausencia del fallback antiguo,
 según `../fase-3-1-listo-para-codigo.md`.
 

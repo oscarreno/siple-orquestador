@@ -1,0 +1,123 @@
+.bitacora-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.bitacora-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  min-height: 260px;
+  color: #5a6b7c;
+}
+
+.bitacora-empty {
+  min-height: 180px;
+}
+
+.bitacora-scrollpanel {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--color-border-soft, #d9e8ed), transparent 8%);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-bg-surface, #ffffff) 94%, transparent);
+}
+
+.bitacora-table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+:host ::ng-deep .bitacora-table .p-datatable-table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+:host ::ng-deep .bitacora-table th,
+:host ::ng-deep .bitacora-table td {
+  min-width: 0;
+  max-width: 0;
+  white-space: normal;
+}
+
+.bitacora-col--origen {
+  width: 4%;
+}
+
+.bitacora-col--secuencia {
+  width: 6%;
+}
+
+.bitacora-col--usuario {
+  width: 12%;
+}
+
+.bitacora-col--cambio {
+  width: 10%;
+}
+
+.bitacora-col--campo {
+  width: 12%;
+}
+
+.bitacora-col--valor {
+  width: 22%;
+}
+
+.bitacora-col--fecha {
+  width: 12%;
+}
+
+.bitacora-cell {
+  vertical-align: top;
+}
+
+.bitacora-cell--texto,
+.bitacora-cell--fecha {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.bitacora-origin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html.layout-dark .bitacora-loading {
+  color: #c7d5e0;
+}
+
+:host-context(html.layout-dark) ::ng-deep .bitacora-scrollpanel {
+  background: color-mix(in srgb, var(--color-bg-elevated, #1a2733) 96%, transparent);
+  border-color: var(--color-border-soft, #2a404c);
+}
+
+:host ::ng-deep .bitacora-scrollpanel .p-scrollpanel-wrapper {
+  border-radius: inherit;
+}
+
+:host ::ng-deep .bitacora-scrollpanel .p-scrollpanel-content {
+  min-width: 100%;
+  min-height: 100%;
+  padding-bottom: 0.4rem;
+}
+
+:host ::ng-deep .bitacora-scrollpanel .p-scrollpanel-bar {
+  background: color-mix(in srgb, var(--color-brand-600, #00727d) 68%, var(--color-border-strong, #9abdc6));
+  border-radius: 999px;
+  opacity: 0.9;
+}
+
+:host-context(html.layout-dark) ::ng-deep .bitacora-scrollpanel .p-scrollpanel-bar {
+  background: color-mix(in srgb, var(--color-brand-500, #009dac) 78%, var(--color-border-hard, #4a7486));
+}

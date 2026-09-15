@@ -99,7 +99,7 @@ contrato específico de despliegue, no una inferencia del cliente.
 
 Rutas a modificar: `src/graphql/resolvers/queryMensajes.ts` y
 `src/graphql/schema/mensajes.schema.graphql`. Prueba dedicada propuesta:
-`scripts/validate-bitacora-publica.ts`, con autenticación y persistencia simuladas,
+`pruebas/validate-bitacora-publica.ts`, con autenticación y persistencia simuladas,
 sin tocar credenciales ni conectarse a una BD. Verificar el código GraphQL a
 través del formateador real de errores, no solo llamando al método aislado.
 
