@@ -1,0 +1,8 @@
+Hora Lunes Martes Miércoles Jueves Viernes Sábado Domingo
+7-9 A1 B1 C1 A2 B2 S1
+9-11 D1 E1 D2 E2 C2 S2
+11-13 F1 G1 F2 G2 J2 S3
+13-15 H1 I1 J1 H2 I2 S4
+16-18 K1 L1 M1 K2 L2 LN
+18-20 N1 O1 N2 O2 M2 LN
+20-22 P1 Q1 P2 Q2 R
